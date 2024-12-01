@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameDB</title>
+    <script>
+        window.addEventListener('load', init);
+        async function init() {
+            const menu = document.querySelector("#genres");
+            const btn = document.querySelector("#myBtn");
+            const year = document.querySelector("#year");
+            const div = document.querySelector("#result");
+            btn.addEventListener('click', async () => {
+                console.log(menu);
+                // get genreid & year
+                const genreid = menu.value;
+                const yearVal = year.value;
+                // fetch
+                const res = await fetch(`/games/list/${genreid}/${yearVal}`);
+                const games = await res.json();
+                const tb = document.createElement('table');
+                tb.border = 1;
+                // Create table header
+                let trHeader = document.createElement('tr')
+                let idHeader = document.createElement('td')
+                idHeader.textContent = 'ID'
+                let titleHeader = document.createElement('td')
+                titleHeader.textContent = 'game title'
+                let pubHeader = document.createElement('td')
+                pubHeader.textContent = 'publisher'
+                let platformHeader = document.createElement('td')
+                platformHeader.textContent = 'publisher'
+                trHeader.append(idHeader)
+                trHeader.append(titleHeader)
+                trHeader.append(pubHeader)
+                trHeader.append(platformHeader)
+                tb.append(trHeader)
+
+                // create & populate table
+                for (let game of games) {
+                    // create <tr>
+                    let trContent = document.createElement('tr')
+                    let IdElement = document.createElement('td')
+                    IdElement.textContent = game.id
+                    let gameTitle = document.createElement('td')
+                    gameTitle.textContent = game.name
+                    let publisher = document.createElement('td')
+                    publisher.textContent = game.publisher
+                    let platform = document.createElement('td')
+                    platform.textContent = game.platform
+                    trContent.append(IdElement)
+                    trContent.append(gameTitle)
+                    trContent.append(publisher)
+                    trContent.append(platform)
+                    tb.append(trContent)
+                    // add <td> into <tr>
+                    // add <tr> to tb
+                }
+                // Replace #result.innerHTML with this table
+                div.innerHTML = "";
+                div.append(tb);
+
+            });
+            // fetch array of genres from API
+            // we haven't done any error handling yet
+            let res = await fetch("/games/genres");
+            let genres = await res.json();
+            // for each genre, create a <option> element and append to menu
+            for (let genre of genres) {
+                let op = document.createElement('option');
+                op.value = genre.id;
+                op.textContent = genre.genre_name;
+                menu.append(op);
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <select id="genres">
+        <!-- populate this drop-down menu using JS -->
+    </select>
+    <input type="text" id="year" size="6" />
+    <button id="myBtn">Show games</button>
+    <div id="result">
+        <!-- populate the table below using JS -->
+        <table border="1">
+            <tr>
+                <td>1</td>
+                <td>game title</td>
+                <td>publisher</td>
+                <td>platform</td>
+            </tr>
+        </table>
+    </div>
+</body>
+
+</html>

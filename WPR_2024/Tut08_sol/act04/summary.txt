@@ -1,0 +1,158 @@
+To refactor your existing user login feature into an MVC (Model-View-Controller) structure, you'll need to organize your codebase into separate directories and files for models, views, controllers, and middleware. Below are the steps to achieve this:
+
+Step 1: Create the Directory Structure
+Create the following directories:
+
+- controllers
+- models
+- middleware
+- views
+Move your Handlebars templates:
+
+Move your existing login.handlebars and profile.handlebars files into the views directory.
+Step 2: Create the User Model
+Create a file named userModel.js in the models directory. This model will handle user data interactions:
+
+// models/userModel.js
+const fs = require('fs');
+const path = require('path');
+
+const usersDataPath = path.join(__dirname, '../users.json');
+
+const loadUsers = () => {
+    const data = fs.readFileSync(usersDataPath);
+    return JSON.parse(data);
+};
+
+const findUserByUsername = (username) => {
+    const users = loadUsers();
+    return users.find(user => user.username === username);
+};
+
+module.exports = {
+    loadUsers,
+    findUserByUsername,
+};
+Step 3: Create the Cookie Middleware
+Create a file named cookieMiddleware.js in the middleware directory. This middleware will handle cookie encryption and decryption:
+
+// middleware/cookieMiddleware.js
+const crypto = require('crypto');
+
+const key = Buffer.from('1234567890abcdef'); // Ensure this is your encryption key
+
+const encryptCookie = (cookie) => {
+    const cipher = crypto.createCipheriv('aes-128-ecb', key, null);
+    let encrypted = cipher.update(cookie, 'utf8', 'base64');
+    encrypted += cipher.final('base64');
+    return encrypted;
+};
+
+const decryptCookie = (cookie) => {
+    const decipher = crypto.createDecipheriv('aes-128-ecb', key, null);
+    let decrypted = decipher.update(cookie, 'base64', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
+};
+
+module.exports = {
+    encryptCookie,
+    decryptCookie,
+};
+Step 4: Create the User Controller
+Create a file named userController.js in the controllers directory. This controller will handle login requests and manage interactions between models and views:
+
+// controllers/userController.js
+const { loadUsers, findUserByUsername } = require('../models/userModel');
+const { encryptCookie, decryptCookie } = require('../middleware/cookieMiddleware');
+
+const loginGet = (req, res) => {
+    res.render('login', { error: null });
+};
+
+const loginPost = (req, res) => {
+    const { username, password } = req.body;
+    const user = findUserByUsername(username);
+
+    if (!user) {
+        return res.render('login', { error: 'User not found' });
+    }
+    if (user.password !== password) {
+        return res.render('login', { error: 'Wrong password' });
+    }
+
+    // If login is successful
+    const encryptedUserId = encryptCookie(user.id);
+    res.cookie('user', encryptedUserId); // Set the cookie
+    res.redirect('/profile');
+};
+
+const profileGet = (req, res) => {
+    const userId = req.cookies.user ? decryptCookie(req.cookies.user) : null;
+    const users = loadUsers();
+    const user = users.find(u => u.id === userId);
+    
+    if (!user) {
+        return res.redirect('/login'); // Redirect to login if no user found
+    }
+
+    res.render('profile', { user });
+};
+
+const logoutGet = (req, res) => {
+    res.clearCookie('user'); // Clear the cookie
+    res.redirect('/login'); // Redirect to login
+};
+
+module.exports = {
+    loginGet,
+    loginPost,
+    profileGet,
+    logoutGet,
+};
+Step 5: Update the Routes
+In your app.js, update the routes to use the new controllers:
+
+// app.js
+const express = require('express');
+const cookieParser = require('cookie-parser');
+const exphbs = require('express-handlebars');
+const userController = require('./controllers/userController');
+
+const app = express();
+const PORT = 3000;
+
+// Middleware
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+app.use(cookieParser());
+app.engine('handlebars', exphbs());
+app.set('view engine', 'handlebars');
+
+// Routes
+app.get('/login', userController.loginGet);
+app.post('/login', userController.loginPost);
+app.get('/profile', userController.profileGet);
+app.get('/logout', userController.logoutGet);
+
+// Start the server
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
+Step 6: Final Touches
+Ensure that all files are saved.
+Run your application again:
+
+Test the Application
+Open your browser and navigate to http://localhost:3000/login.
+Log in with your credentials.
+
+You should be redirected to your profile page.
+Test logging out to ensure the cookie is cleared properly.
+
+Summary of Changes
+Model: Created a user model to handle data interactions with users.json.
+View: Kept Handlebars templates in the views directory.
+Controller: Created a user controller to handle user input and manage the application logic.
+Middleware: Created middleware for cookie encryption and decryption.
+Updated Routes: Refactored routes in app.js to utilize the new MVC structure.
+This refactoring enhances code organization, making it easier to manage and scale your application. If you have any further questions or need assistance, feel free to ask!

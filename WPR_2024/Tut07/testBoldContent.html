@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        function boldContent() {
+            // Đây là như cái dòng ông thêm thẻ p nhé 
+            var paragraph = document.createElement('p')
+            paragraph.innerHTML = "Select Next to bold"
+
+            // Nhớ thêm element vào trước khi mình check
+            var body = document.querySelector('body')
+            body.appendChild(paragraph)
+
+            // Đây là lấy nội dung sau khi mình đã generate được ra phần dom rồi
+            var text = paragraph.innerHTML;
+            // Kiểm tra xem có từ Next không, ( nếu muốn từ khác nữa cũng được nhé if else thui)
+            if (text.includes("Next")) {
+                // Thay từ next thành từ next có chứu thẻ strong 
+                var boldedText = text.replace("Next", "<strong>Next</strong>");
+                paragraph.innerHTML = boldedText;
+            }
+
+        }
+        boldContent()
+    </script>
+</body>
+
+</html>

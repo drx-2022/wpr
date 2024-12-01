@@ -1,0 +1,16 @@
+.board {
+  width: 150px;
+  height: 150px;
+}
+
+.square {
+  float: left;
+  width: 49px;
+  height: 49px;
+  margin-right: -1px;
+  margin-bottom: -1px;
+  border: 1px solid #666;
+  text-align: center;
+  line-height: 49px;
+  font-size: 28px;
+}

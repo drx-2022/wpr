@@ -1,0 +1,157 @@
+Step 1: Install Handlebars First, you need to install the express-handlebars package for integrating Handlebars with Express:
+
+npm install express-handlebars
+
+Step 2: Update the Server Setup Modify your app.js file to use Handlebars as the templating engine with layouts. Here’s how to do it:
+
+// app.js
+const express = require('express');
+const cookieParser = require('cookie-parser');
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+const exphbs = require('express-handlebars');
+
+const app = express();
+const PORT = 3000;
+
+// Middleware
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// Set Handlebars as the view engine with default layout
+app.engine('handlebars', exphbs({
+    defaultLayout: 'main', // Default layout to use
+    layoutsDir: path.join(__dirname, 'views', 'layouts'), // Layouts directory
+    helpers: {
+        formatDate: function(dateString) {
+            return new Date(dateString).toLocaleString(); // Date formatting helper
+        }
+    }
+}));
+app.set('view engine', 'handlebars');
+
+// Load user data from JSON file
+const usersDataPath = path.join(__dirname, 'users.json');
+const loadUsers = () => {
+    const data = fs.readFileSync(usersDataPath);
+    return JSON.parse(data);
+};
+
+// Encrypt the cookie
+const encryptCookie = (cookie) => {
+    const cipher = crypto.createCipheriv('aes-128-ecb', Buffer.from('1234567890abcdef'), null);
+    let encrypted = cipher.update(cookie, 'utf8', 'base64');
+    encrypted += cipher.final('base64');
+    return encrypted;
+};
+
+// Decrypt the cookie
+const decryptCookie = (cookie) => {
+    const decipher = crypto.createDecipheriv('aes-128-ecb', Buffer.from('1234567890abcdef'), null);
+    let decrypted = decipher.update(cookie, 'base64', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
+};
+
+// Login GET Endpoint
+app.get('/login', (req, res) => {
+    res.render('login', { error: null });
+});
+
+// Login POST Endpoint
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+    const users = loadUsers();
+    const user = users.find(u => u.username === username);
+
+    if (!user) {
+        return res.render('login', { error: 'User not found' });
+    }
+    if (user.password !== password) {
+        return res.render('login', { error: 'Wrong password' });
+    }
+
+    const encryptedUserId = encryptCookie(user.id);
+    res.cookie('user', encryptedUserId); 
+    res.redirect('/profile');
+});
+
+// Profile GET Endpoint
+app.get('/profile', (req, res) => {
+    const userId = req.cookies.user ? decryptCookie(req.cookies.user) : null;
+    const users = loadUsers();
+    const user = users.find(u => u.id === userId);
+    
+    if (!user) {
+        return res.redirect('/login');
+    }
+
+    res.render('profile', { user });
+});
+
+// Logout GET Endpoint
+app.get('/logout', (req, res) => {
+    res.clearCookie('user');
+    res.redirect('/login');
+});
+
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
+
+Step 3: Update Handlebars Templates and Add Layouts
+
+Create a views folder in your project root directory.
+Inside the views folder, create a layouts folder for your main layout file.
+Create a main.handlebars file in views/layouts:
+
+<!-- views/layouts/main.handlebars -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}}</title>
+</head>
+<body>
+    {{{body}}} <!-- Content from each page will be injected here -->
+</body>
+</html>
+Create login.handlebars in views:
+html
+Copy code
+<!-- views/login.handlebars -->
+<h1>Login</h1>
+<form action="/login" method="POST">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required>
+    <br>
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required>
+    <br>
+    <button type="submit">Login</button>
+</form>
+{{#if error}}
+    <p style="color: red;">{{error}}</p>
+{{/if}}
+Create profile.handlebars in views:
+html
+Copy code
+<!-- views/profile.handlebars -->
+<h1>User Profile</h1>
+<img src="{{user.avatar}}" alt="Avatar" style="width:100px;height:100px;">
+<h2>Name: {{user.name}}</h2>
+<h3>Username: {{user.username}}</h3>
+<h4>Signup Time: {{formatDate user.signupTime}}</h4>
+<a href="/logout">Logout</a>
+
+Step 4: Run the Application Once you have created the necessary templates and layout, run your application:
+
+
+node app.js
+Summary of Changes:
+
+Handlebars now uses a default layout (main.handlebars) to maintain a consistent structure across pages.
+Created a layouts folder inside the views directory to organize layout files.
+Updated templates (login.handlebars and profile.handlebars) to inherit the layout.

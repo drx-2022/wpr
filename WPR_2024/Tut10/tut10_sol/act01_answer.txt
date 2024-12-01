@@ -1,0 +1,56 @@
+> mongosh
+
+// 1. List all existing databases
+show dbs
+
+// 2. Switch to the 'eng-dict' database (automatically created if it doesn't exist)
+use eng-dict
+
+// 3. List all collections in this database
+show collections
+
+// 4. Add a new word to the 'words' collection (collection is auto-created if not present)
+db.words.insertOne({ word: 'dog', definition: 'friend' })
+db.words.insertOne({ word: 'cat', definition: 'boss' })
+
+// 5. Query all words to verify successful insertion
+db.words.find()
+
+// 6. Add at least 5 more words
+db.words.insertMany([
+  { word: 'bird', definition: 'singer' },
+  { word: 'fish', definition: 'swimmer' },
+  { word: 'elephant', definition: 'giant' },
+  { word: 'lion', definition: 'king' },
+  { word: 'mouse', definition: 'small' }
+])
+
+// 7. Query the definition of the word 'dog'
+db.words.find({ word: 'dog' }, { definition: 1 })
+
+// 8. Update the definition of the word 'dog' from 'friend' to 'woof woof'
+db.words.updateOne({ word: 'dog' }, { $set: { definition: 'woof woof' } })
+
+// 9. Query all words to verify the successful update
+db.words.find()
+
+// 10. Set all words to have the definition 'empty: to-update'
+db.words.updateMany({}, { $set: { definition: 'empty: to-update' } })
+
+// 11. Delete the word 'dog' from the 'words' collection
+db.words.deleteOne({ word: 'dog' })
+
+// 12. Query all words to verify successful deletion
+db.words.find()
+
+// 13. Delete all words from the 'words' collection
+db.words.deleteMany({})
+
+// 14. Query all words to verify successful deletion
+db.words.find()
+
+// 15. Drop the 'words' collection from the database
+db.words.drop()
+
+// 16. List all collections to verify the successful drop
+show collections

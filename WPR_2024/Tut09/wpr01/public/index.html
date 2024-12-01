@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GameDB</title>
+  <script>
+    window.addEventListener('load', init);
+    async function init() {
+      const menu = document.querySelector("#genres");
+      const btn = document.querySelector("#myBtn");
+      const year = document.querySelector("#year");
+      const div = document.querySelector("#result");
+      btn.addEventListener('click', async () => {
+        // get genreid & year
+        const genreid = menu.value;
+        const yearVal = year.value;
+        // fetch
+        try {
+          const res = await fetch(`/games/list/${genreid}/${yearVal}`);
+          const games = await res.json();
+
+          const tb = document.createElement('table');
+          tb.border = 1;
+
+          // Create table header
+          const trHeader = document.createElement('tr');
+          const headers = ['ID', 'Game Title', 'Publisher', 'Platform'];
+          headers.forEach(header => {
+            const th = document.createElement('td');
+            th.textContent = header;
+            trHeader.append(th);
+          });
+          tb.append(trHeader);
+          
+          // create & populate table
+          for (let game of games) {
+            // create <tr>
+            const trContent = document.createElement('tr');
+            const rowData = [game.id, game.name, game.publisher, game.platform];
+
+            rowData.forEach(data => {
+              const td = document.createElement('td');
+              td.textContent = data;
+              trContent.append(td);
+            });
+
+            tb.append(trContent);
+          }
+          // replace #result.innerHTML with this table
+          div.innerHTML = "";
+          div.append(tb);
+        } catch (err) {
+          console.log(err);
+        }
+      });
+      // fetch array of genres from API
+      // we haven't done any error handling yet
+      
+      let res = await fetch("/games/genres");
+      let genres = await res.json();
+      // for each genre, create a <option> element and append to menu
+      for (let genre of genres) {
+        let op = document.createElement('option');
+        op.value = genre.id;
+        op.textContent = genre.genre_name;
+        menu.append(op);
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <select id="genres">
+    <!-- populate this drop-down menu using JS -->
+  </select>
+  <input type="text" id="year" size="6" />
+  <button id="myBtn">Show games</button>
+  <div id="result">
+    <!-- populate the table below using JS -->
+    <table border="1">
+      <tr>
+        <td>1</td>
+        <td>game title</td>
+        <td>publisher</td>
+        <td>platform</td>
+      </tr>
+    </table>
+  </div>
+</body>
+
+</html>

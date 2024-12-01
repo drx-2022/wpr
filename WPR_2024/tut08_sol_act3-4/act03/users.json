@@ -1,0 +1,18 @@
+[
+    {
+        "id": "1",
+        "name": "John Doe",
+        "username": "johndoe",
+        "password": "password123",
+        "avatar": "path/to/avatar1.jpg",
+        "signupTime": "2024-10-01T10:00:00Z"
+    },
+    {
+        "id": "2",
+        "name": "Jane Smith",
+        "username": "janesmith",
+        "password": "mypassword",
+        "avatar": "path/to/avatar2.jpg",
+        "signupTime": "2024-10-02T10:00:00Z"
+    }
+]
